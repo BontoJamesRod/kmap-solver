@@ -1,6 +1,8 @@
 /* ==================================================================
-   Design tokens. The feel follows the Claude web app: warm neutrals,
-   a serif for display, a terracotta accent used sparingly.
+   Design tokens. The feel follows the Claude web app: warm neutrals and a
+   terracotta accent used sparingly. Display type is B612, the typeface Airbus
+   commissioned for cockpit screens, where no character may be misread; it sets
+   the headings, the answer, and the map values. Inter handles interface text.
    Group colors stay on the color-blind-safe Okabe-Ito set.
    ================================================================== */
 :root {
@@ -37,9 +39,9 @@
   --g7: #6f6f00;
   --g8: #3d4b5c;
 
-  --serif: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --display: 'B612', 'Inter Variable', system-ui, sans-serif;
   --sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'Atkinson Hyperlegible Mono', ui-monospace, 'Cascadia Mono', Menlo, monospace;
+  --mono: 'B612 Mono', ui-monospace, 'Cascadia Mono', Menlo, monospace;
 
   --radius-sm: 8px;
   --radius: 12px;
@@ -458,9 +460,9 @@ fieldset {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  font-family: var(--serif);
-  font-size: 19px;
-  font-weight: 560;
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
@@ -658,11 +660,10 @@ fieldset {
 
 .greeting {
   margin: 20px 0 2px;
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 34px;
-  font-weight: 400;
-  font-optical-sizing: auto;
-  letter-spacing: -0.015em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.15;
   text-align: center;
 }
@@ -821,10 +822,10 @@ fieldset {
 }
 
 .card-title {
-  font-family: var(--serif);
-  font-size: 19px;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .result-card {
@@ -1053,10 +1054,11 @@ fieldset {
 .val {
   position: relative;
   z-index: 2;
+  font-family: var(--display);
 }
 
 .cell.v1 .val {
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .cell.v0 .val {
@@ -1244,7 +1246,7 @@ fieldset {
 .answer {
   font-size: 32px;
   line-height: 1.5;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
@@ -1269,7 +1271,7 @@ fieldset {
 }
 
 .expr {
-  font-feature-settings: 'ss02' 1, 'tnum' 1;
+  font-family: var(--display);
 }
 
 .expr .term-wrap > span,
@@ -1709,7 +1711,7 @@ table.chart tr.essential th {
   margin: 4px 0 0;
   padding: 0;
   list-style: none;
-  font-size: 17px;
+  font-size: 16px;
   display: grid;
   gap: 4px;
 }
@@ -1748,7 +1750,7 @@ table.chart tr.essential th {
 }
 
 .clabel {
-  font-family: var(--sans);
+  font-family: var(--display);
   font-size: 13px;
 }
 
@@ -1810,10 +1812,10 @@ table.chart tr.essential th {
 }
 
 .settings-head h2 {
-  font-family: var(--serif);
-  font-size: 24px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
 .settings-body {
