@@ -20,6 +20,28 @@ for (const scheme of ['light', 'dark'] as const) {
   }
 }
 
+for (const scheme of ['light', 'dark'] as const) {
+  test(`no accessibility violations: settings dialog, every section, ${scheme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
+    await page.goto('./');
+    await page.getByRole('button', { name: 'Settings' }).click();
+    for (const tab of ['General', 'Appearance', 'Circuit', 'Data', 'About']) {
+      await page.getByRole('tab', { name: tab }).click();
+      const results = await new AxeBuilder({ page }).include('dialog').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+      expect(results.violations.map((v) => `${tab} ${v.id}: ${v.nodes[0]?.target.join(' ')}`)).toEqual([]);
+    }
+  });
+}
+
+test('no accessibility violations: phone drawer open', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Open sidebar' }).click();
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  expect(results.violations.map((v) => `${v.id}: ${v.nodes[0]?.target.join(' ')}`)).toEqual([]);
+});
+
 test('a wrong answer is announced and marked without relying on color', async ({ page }) => {
   await page.goto('./');
   await page.getByPlaceholder(/Type your answer/).fill("A'B' + C");

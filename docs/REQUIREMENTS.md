@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| **Version** | 1.0 |
+| **Version** | 1.1 |
 | **Status** | Implemented |
 | **Owner** | James Rod Bonto ([@BontoJamesRod](https://github.com/BontoJamesRod)) |
 | **Background** | [RESEARCH.md](RESEARCH.md) |
@@ -32,10 +32,20 @@ A free web app that simplifies any Boolean function of 2–6 variables. It must:
 | ID | Requirement |
 | --- | --- |
 | FR-1 | Support 2 to 6 variables. Variables are named `A`–`F` by default and can be renamed (e.g. `w x y z`). Names are a letter followed by optional digits. |
-| FR-2 | Four ways to enter a function, all kept in sync: **(a)** click K-map cells, **(b)** click the truth table output column, **(c)** type minterms Σm or maxterms ΠM with optional don't-cares d, **(d)** type a Boolean expression. Clicking a cell cycles 0 → 1 → X (don't-care). |
-| FR-3 | List input accepts commas or spaces and ranges (`0-3`). It rejects out-of-range numbers, and numbers listed as both a term and a don't-care, with a clear message. |
+| FR-2 | Three ways to enter a function, all kept in sync: **(a)** click K-map cells, **(b)** click the truth table output column, **(c)** type into the composer (FR-25). Clicking a cell cycles 0 → 1 → X (don't-care). |
+| FR-3 | List input accepts commas or spaces and ranges (`0-3`). It rejects numbers above 63 and numbers listed as both a term and a don't-care, with a clear message. |
 | FR-4 | The expression parser accepts: NOT as `A'`, `A’`, `~A`, `!A`, `¬A`, `NOT A`; AND as juxtaposition (`AB`), `*`, `·`, `&`, `∧`, `.`, `AND`; OR as `+`, `|`, `∨`, `OR`; XOR as `^`, `⊕`, `XOR`; parentheses, a complemented group `(A+B)'`, and constants `0`/`1`. Precedence from highest: NOT, AND, XOR, OR. Errors point to the exact position. |
 | FR-5 | Changing the number of variables keeps as much of the function as possible. Lists keep the numbers that are still in range. An expression is kept if its variables still exist. |
+
+| FR-25 | **Composer.** One input box, styled like a chat composer, accepts either an expression (`A'B + AC`) or a list. Lists can be written as `Σm(1,3,7) + d(0,2)`, `m(1,3,7) d(0,2)`, `ΠM(0,4) · d(2)`, or plain numbers (`1, 3, 7`). The type is detected automatically or can be chosen (Auto, Expression, Minterms, Maxterms). The variable count is picked from a dropdown, and grows on its own if a list needs more variables. Enter applies the input. Errors point at the exact position. |
+
+### Workspace
+
+| ID | Requirement |
+| --- | --- |
+| FR-26 | **Sidebar** with *New function*, textbook examples, and *Recents*. Every function worked on is saved in Recents, titled by its minimal answer, and can be reopened or removed. On narrow screens the sidebar is a drawer; on wide screens it can be collapsed. |
+| FR-27 | **Settings dialog** with sections: *General* (variable names, 3-variable layout, variable count and answer form for new functions), *Appearance* (light, dark, or system theme; group outline animation; cell numbers), *Circuit* (default gate style), *Data* (clear Recents, reset settings), and *About*. Settings are remembered between visits. |
+| FR-28 | **Visual design** follows the feel of the Claude web app: warm neutral colors, a serif for display headings, a composer-style input, rounded cards, and a tabbed settings dialog. It uses its own name, logo, and open-source fonts. |
 
 ### Solving
 
@@ -112,6 +122,9 @@ A free web app that simplifies any Boolean function of 2–6 variables. It must:
 | --- | --- |
 | FR-1, FR-5 | `src/engine/__tests__/state.test.ts`, `e2e/app.spec.ts` |
 | FR-2, FR-3 | `src/engine/__tests__/lists.test.ts`, `e2e/app.spec.ts` |
+| FR-25 | `src/engine/__tests__/input.test.ts`, `e2e/app.spec.ts` |
+| FR-26, FR-27 | `e2e/app.spec.ts`, `e2e/a11y.spec.ts` (including the open settings dialog and drawer) |
+| FR-28 | Screenshots in `docs/screenshots/`, reviewed in light and dark themes and at 360 px |
 | FR-4 | `src/engine/__tests__/parse.test.ts` (including a random round-trip test) |
 | FR-6, FR-7, FR-8 | `src/engine/__tests__/solve.test.ts`, `src/engine/__tests__/exhaustive.test.ts` |
 | FR-9 | `src/engine/__tests__/format.test.ts` |

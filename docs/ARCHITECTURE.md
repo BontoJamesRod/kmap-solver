@@ -44,6 +44,7 @@ interface Cube { value: number; dashes: number }  // dashes: eliminated variable
 | `layout.ts` | K-map geometry: layers, rows, columns, Gray-code labels, minterm ↔ cell position, and how a cube splits into rectangles when it wraps |
 | `circuit.ts` | Circuit model: gates, inputs, and wire coordinates for a solution. The UI only draws it |
 | `state.ts` | App state: defaults, URL hash encode/decode, keeping the function when the number of variables changes |
+| `input.ts` | Composer input: detects a Σm / ΠM / d list or an expression, and picks the variable count |
 
 ## Data flow
 
@@ -56,6 +57,22 @@ user input ──▶ state (useReducer) ──▶ engine.solve() (memoized) ─�
 - All input views (map, truth table, lists, expression) edit the same `BoolFunction`.
 - An expression stays as text while it's being typed; the function updates only when it parses.
 - `solve()` runs for SOP and POS together, memoized on the function's values.
+
+## App shell (`src/ui/`)
+
+| Part | Component | Notes |
+| --- | --- | --- |
+| Sidebar | `Sidebar.tsx` | New function, examples, Recents. A drawer under 900 px (main content is `inert` while it's open). |
+| Top bar | `TopBar.tsx` | Sidebar toggle, current function's title, Share |
+| Composer | `Composer.tsx` | Function input (FR-25); parsing happens in `engine/input.ts` |
+| Result card | `ResultCard.tsx` | Map or truth table on one side, answer on the other |
+| Settings | `Settings.tsx` | Native `<dialog>` (focus trap and Esc for free), tabbed sections, `role="switch"` toggles |
+| Preferences | `usePrefs.ts` | Theme and display preferences in `localStorage`. The function itself lives in the URL (`state.ts`) |
+| Recents | `useRecents.ts` | Up to 20 functions in `localStorage`, titled by their minimal answer |
+
+## Visual design
+
+Inspired by the Claude web app (FR-28): warm off-white and warm charcoal neutrals, a terracotta accent used sparingly (send button, focus, selection), Source Serif 4 for display headings, Inter for the interface, with its disambiguation set (`ss02`) turned on for expressions and the map so that 0/O and 1/l/I can't be confused. Group colors stay on the color-blind-safe Okabe-Ito set. Design tokens are CSS custom properties at the top of `styles.css`.
 
 ## K-map rendering
 

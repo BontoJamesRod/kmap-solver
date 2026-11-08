@@ -1,11 +1,13 @@
 import { useId, useMemo, useRef, useState } from 'react';
 import { buildCircuit, type CircuitStyle, type Cube, type Form, type Gate } from '../engine';
+import { IconDownload } from './icons';
 
 interface Props {
   cubes: Cube[];
   n: number;
   names: string[];
   form: Form;
+  defaultStyle: CircuitStyle;
 }
 
 function gatePath(g: Gate): string {
@@ -20,9 +22,9 @@ function gatePath(g: Gate): string {
 
 const hasBubble = (g: Gate) => g.kind === 'nand' || g.kind === 'nor' || g.kind === 'not';
 
-export function Circuit({ cubes, n, names, form }: Props) {
+export function Circuit({ cubes, n, names, form, defaultStyle }: Props) {
   const id = useId();
-  const [style, setStyle] = useState<CircuitStyle>('two-level');
+  const [style, setStyle] = useState<CircuitStyle>(defaultStyle);
   const svgRef = useRef<SVGSVGElement>(null);
   const model = useMemo(() => buildCircuit(cubes, n, names, form, style), [cubes, n, names, form, style]);
   const styleNames: Record<CircuitStyle, string> = form === 'sop'
@@ -56,9 +58,8 @@ export function Circuit({ cubes, n, names, form }: Props) {
     : `${model.counts.gates} ${model.counts.gates === 1 ? 'gate' : 'gates'} with ${model.counts.gateInputs} inputs in total${model.counts.inverters ? `, plus ${model.counts.inverters} ${model.counts.inverters === 1 ? 'inverter' : 'inverters'} for complemented inputs` : ''}.`;
 
   return (
-    <section className="circuit" aria-labelledby={`${id}-h`}>
-      <div className="section-head">
-        <h2 id={`${id}-h`}>Circuit</h2>
+    <div className="circuit">
+      <div className="circuit-controls">
         <fieldset className="segmented small">
           <legend className="sr-only">Gate style</legend>
           {(['two-level', 'universal'] as const).map((s) => (
@@ -68,7 +69,8 @@ export function Circuit({ cubes, n, names, form }: Props) {
             </label>
           ))}
         </fieldset>
-        <button type="button" className="ghost" onClick={download} disabled={model.constant !== null}>
+        <button type="button" className="button secondary" onClick={download} disabled={model.constant !== null}>
+          <IconDownload size={16} />
           Download SVG
         </button>
       </div>
@@ -118,6 +120,6 @@ export function Circuit({ cubes, n, names, form }: Props) {
           </svg>
         </div>
       )}
-    </section>
+    </div>
   );
 }

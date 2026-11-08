@@ -1,4 +1,4 @@
-import type { BoolFunction, CellValue } from '../../engine';
+import type { BoolFunction, CellValue } from '../engine';
 
 interface Props {
   fn: BoolFunction;

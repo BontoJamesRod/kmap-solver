@@ -24,6 +24,8 @@ export type Action =
   | { type: 'cycleCell'; m: number }
   | { type: 'setCell'; m: number; value: CellValue }
   | { type: 'fill'; value: CellValue }
+  | { type: 'load'; state: AppState }
+  | { type: 'newFunction'; n: number; form: Form }
   | { type: 'reset' };
 
 const NEXT: Record<string, CellValue> = { '0': 1, '1': 'x', x: 0 };
@@ -51,6 +53,16 @@ function reducer(s: AppState, a: Action): AppState {
     }
     case 'fill':
       return { ...s, fn: { ...s.fn, values: s.fn.values.map(() => a.value) }, solution: 0 };
+    case 'load':
+      return a.state;
+    case 'newFunction':
+      return {
+        ...s,
+        fn: { n: a.n, values: Array.from({ length: 1 << a.n }, () => 0 as CellValue) },
+        names: namesFor(s.names, a.n),
+        form: a.form,
+        solution: 0,
+      };
     case 'reset':
       return defaultState();
   }

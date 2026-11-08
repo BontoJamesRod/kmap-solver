@@ -1,6 +1,5 @@
-import '@fontsource/atkinson-hyperlegible-next/400.css';
-import '@fontsource/atkinson-hyperlegible-next/600.css';
-import '@fontsource/atkinson-hyperlegible-next/700.css';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/source-serif-4/opsz.css';
 import '@fontsource/atkinson-hyperlegible-mono/400.css';
 import './ui/styles.css';
 import { StrictMode } from 'react';

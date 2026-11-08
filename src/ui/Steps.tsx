@@ -1,4 +1,4 @@
-import { Fragment, useId } from 'react';
+import { Fragment } from 'react';
 import { cubeKey, cubePattern, type BoolFunction, type SolveResult } from '../engine';
 import { Expression } from './Expression';
 
@@ -27,7 +27,6 @@ function Minterms({ list, dontCares }: { list: number[]; dontCares: Set<number> 
 }
 
 export function Steps({ fn, names, result }: Props) {
-  const id = useId();
   const { form, primes } = result;
   const target = form === 'sop' ? '1s' : '0s';
   const dcSet = new Set(result.dontCares);
@@ -40,12 +39,9 @@ export function Steps({ fn, names, result }: Props) {
 
   if (result.required.length === 0) {
     return (
-      <section className="steps" aria-labelledby={`${id}-h`}>
-        <h2 id={`${id}-h`}>How it's solved</h2>
-        <p>
-          F has no {target} to cover, so the {form === 'sop' ? 'sum of products is 0' : 'product of sums is 1'}. Nothing to simplify.
-        </p>
-      </section>
+      <p className="steps-empty">
+        F has no {target} to cover, so the {form === 'sop' ? 'sum of products is 0' : 'product of sums is 1'}. Nothing to simplify.
+      </p>
     );
   }
 
@@ -53,8 +49,7 @@ export function Steps({ fn, names, result }: Props) {
   const p = result.petrick;
 
   return (
-    <section className="steps" aria-labelledby={`${id}-h`}>
-      <h2 id={`${id}-h`}>How it's solved</h2>
+    <div className="steps">
       <p className="lede">
         The tabular (Quine-McCluskey) method, applied to the {target} of F
         {result.dontCares.length > 0 ? ". Don't-cares join the grouping but never have to be covered" : ''}.
@@ -278,6 +273,6 @@ export function Steps({ fn, names, result }: Props) {
           </details>
         </li>
       </ol>
-    </section>
+    </div>
   );
 }

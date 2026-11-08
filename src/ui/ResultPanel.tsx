@@ -77,14 +77,14 @@ export function ResultPanel({ fn, names, form, result, solution, active, onActiv
         </span>
         {count > 1 && (
           <span className="picker">
-            <button type="button" className="ghost" onClick={() => onSolution((solution - 1 + count) % count)} aria-label="Previous answer">
+            <button type="button" className="button secondary small" onClick={() => onSolution((solution - 1 + count) % count)} aria-label="Previous answer">
               Previous
             </button>
             <span aria-live="polite">
               Answer {solution + 1} of {count}
               {result.solutionsTruncated ? '+' : ''}
             </span>
-            <button type="button" className="ghost" onClick={() => onSolution((solution + 1) % count)} aria-label="Next answer">
+            <button type="button" className="button secondary small" onClick={() => onSolution((solution + 1) % count)} aria-label="Next answer">
               Next
             </button>
           </span>

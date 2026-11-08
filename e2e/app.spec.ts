@@ -2,6 +2,15 @@ import { expect, test, type Page } from '@playwright/test';
 
 const answer = (page: Page) => page.locator('.answer .expr');
 const cell = (page: Page, m: number) => page.locator('.kmap .cell').filter({ has: page.locator(`.m-no:text-is("${m}")`) });
+const composer = (page: Page) => page.getByRole('textbox', { name: 'Function' });
+const apply = async (page: Page, text: string) => {
+  await composer(page).fill(text);
+  await composer(page).press('Enter');
+};
+const openSettings = async (page: Page) => {
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await expect(page.getByRole('dialog', { name: 'Settings' })).toBeVisible();
+};
 
 test.beforeEach(async ({ page }) => {
   await page.goto('./');
@@ -47,30 +56,35 @@ test('switching to product of sums groups the 0s', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Minimal product of sums' })).toBeVisible();
 });
 
-test('typing an expression sets the function, and new variable names are adopted', async ({ page }) => {
-  await page.getByRole('tab', { name: 'Expression' }).click();
-  const input = page.getByRole('textbox', { name: 'Expression' });
-  await input.fill("A'B + AB'");
+test('the composer takes expressions and adopts new variable names', async ({ page }) => {
+  await apply(page, "A'B + AB'");
   await expect(answer(page)).toHaveAttribute('aria-label', 'A prime B, plus, A B prime');
-  await input.fill("w'x + yz");
-  await expect(page.getByLabel('Name of variable 1')).toHaveValue('w');
+  await apply(page, "w'x + yz");
+  await expect(page.locator('.topbar-name')).toHaveText('F(w, x, y, z)');
   await expect(answer(page)).toHaveAttribute('aria-label', 'w prime x, plus, y z');
-  await input.fill('w + (x');
-  await expect(page.getByRole('alert')).toContainText('Missing ")"');
 });
 
-test('minterm lists validate their input', async ({ page }) => {
-  const minterms = page.getByLabel('Minterms', { exact: true });
-  await minterms.fill('0, 2, 8, 10');
-  await page.getByLabel("Don't-cares").fill('');
+test('the composer takes minterm lists and grows the variable count', async ({ page }) => {
+  await apply(page, 'Σm(0, 2, 8, 10)');
   await expect(answer(page)).toHaveAttribute('aria-label', 'B prime D prime');
-  await minterms.fill('0, 16');
-  await expect(page.getByRole('alert')).toContainText('16 is out of range');
+  await apply(page, 'm(0, 31)');
+  await expect(page.getByRole('combobox', { name: 'Number of variables' })).toHaveValue('5');
+  await expect(page.locator('.kmap .layer')).toHaveCount(2);
+});
+
+test('the composer explains errors and shows how it reads the input', async ({ page }) => {
+  await composer(page).fill('m(1, 64)');
+  await expect(page.getByText('Reads as minterm list')).toBeVisible();
+  await composer(page).press('Enter');
+  await expect(page.getByRole('alert')).toContainText('64 is out of range');
+  await apply(page, 'A + (B');
+  await expect(page.getByRole('alert')).toContainText('Missing ")"');
+  await expect(page.getByRole('button', { name: 'Apply function' })).toBeEnabled();
 });
 
 test('the truth table edits the same function', async ({ page }) => {
   await page.getByRole('button', { name: 'Clear' }).click();
-  await page.getByRole('tab', { name: 'Truth table' }).click();
+  await page.getByRole('radio', { name: 'Truth table' }).check();
   await page.getByRole('button', { name: 'Output for minterm 15: 0' }).click();
   await expect(answer(page)).toHaveAttribute('aria-label', 'A B C D');
 });
@@ -87,23 +101,104 @@ test('check my answer: wrong, not minimal, and minimal', async ({ page }) => {
   await expect(page.locator('.cell.wrong')).toHaveCount(0);
 });
 
-test('the state survives a reload and links reproduce it', async ({ page }) => {
-  await page.getByRole('radio', { name: '3' }).check({ force: true });
-  await page.getByRole('radio', { name: 'AB × C' }).check();
-  await page.reload();
-  await expect(page.getByRole('radio', { name: '3' })).toBeChecked();
+test('examples load from the sidebar, and edited functions appear in Recents', async ({ page }) => {
+  await page.getByRole('button', { name: 'Four corners' }).click();
+  await expect(answer(page)).toHaveAttribute('aria-label', 'B prime D prime');
+  await expect(composer(page)).toHaveValue('Σm(0, 2, 8, 10)');
+  const recents = page.getByRole('navigation', { name: 'Recents' });
+  await expect(recents.getByText('Functions you work on are saved here.')).toBeVisible();
+
+  await cell(page, 5).click();
+  await expect(recents.getByRole('button', { name: /^F = A'BC'D \+ B'D'/ })).toBeVisible();
+
+  await page.getByRole('button', { name: 'New function' }).click();
+  await expect(answer(page)).toHaveText('0');
+  await recents.getByRole('button', { name: /^F = A'BC'D \+ B'D'/ }).click();
+  await expect(cell(page, 5)).toHaveClass(/\bv1\b/);
+
+  await recents.getByRole('button', { name: /Remove/ }).click();
+  await expect(recents.getByText('Functions you work on are saved here.')).toBeVisible();
+});
+
+test('settings: names, 3-variable layout, cell numbers, and theme', async ({ page }) => {
+  await page.getByRole('combobox', { name: 'Number of variables' }).selectOption('3');
+  await openSettings(page);
+  await page.getByRole('textbox', { name: 'Name of variable 1' }).fill('x');
+  await expect(page.locator('.topbar-name')).toHaveText('F(x, B, C)');
+  await page.getByRole('combobox', { name: '3-variable map layout' }).selectOption('tall');
+  await page.getByRole('tab', { name: 'Appearance' }).click();
+  await page.getByRole('switch', { name: 'Show cell numbers' }).click();
+  await page.getByRole('radio', { name: 'Dark' }).check();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Settings' })).toBeHidden();
+  await expect(page.locator('.kmap')).toHaveClass(/no-numbers/);
   await expect(page.locator('.kmap .cells').first()).toHaveCSS('grid-template-columns', /^\S+ \S+$/);
 
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+});
+
+test('settings: clearing recents asks first', async ({ page }) => {
+  await cell(page, 4).click();
+  const recents = page.getByRole('navigation', { name: 'Recents' });
+  await expect(recents.locator('.recent')).toHaveCount(1);
+  await openSettings(page);
+  await page.getByRole('tab', { name: 'Data' }).click();
+  await page.getByRole('button', { name: 'Clear recents' }).click();
+  await page.getByRole('button', { name: 'Clear all' }).click();
+  await page.getByRole('button', { name: 'Close settings' }).click();
+  await expect(recents.locator('.recent')).toHaveCount(0);
+});
+
+test('the sidebar collapses on wide screens and is a drawer on phones', async ({ page }) => {
+  await page.getByRole('button', { name: 'Close sidebar' }).click();
+  await expect(page.locator('#sidebar')).toBeHidden();
+  await page.getByRole('button', { name: 'Open sidebar' }).click();
+  await expect(page.locator('#sidebar')).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 800 });
+  await expect(page.locator('#sidebar')).toBeHidden();
+  await page.getByRole('button', { name: 'Open sidebar' }).click();
+  await expect(page.locator('#sidebar')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'New function' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#sidebar')).toBeHidden();
+});
+
+test('the state survives a reload and links reproduce it', async ({ page }) => {
+  await page.getByRole('combobox', { name: 'Number of variables' }).selectOption('3');
+  await page.reload();
+  await expect(page.getByRole('combobox', { name: 'Number of variables' })).toHaveValue('3');
   await page.goto('./#n=2&f=0110');
   await expect(answer(page)).toHaveAttribute('aria-label', 'A prime B, plus, A B prime');
 });
 
+test('remembers the last function between visits', async ({ page }) => {
+  await page.getByRole('button', { name: 'Clear' }).click();
+  await cell(page, 6).click();
+  await page.goto('./');
+  await expect(page.locator('.kmap .cell.v1')).toHaveCount(1);
+  await expect(cell(page, 6)).toHaveClass(/\bv1\b/);
+});
+
 test('5 and 6 variables draw 2 and 4 layers', async ({ page }) => {
-  await page.getByRole('radio', { name: '5' }).check({ force: true });
+  const count = page.getByRole('combobox', { name: 'Number of variables' });
+  await count.selectOption('5');
   await expect(page.locator('.kmap .layer')).toHaveCount(2);
-  await page.getByRole('radio', { name: '6' }).check({ force: true });
+  await count.selectOption('6');
   await expect(page.locator('.kmap .layer')).toHaveCount(4);
   await expect(page.locator('.kmap .cell')).toHaveCount(64);
+});
+
+test('hovering a term highlights its group on the map, and the reverse', async ({ page }) => {
+  await page.locator('.answer .term.linked').nth(1).hover();
+  await expect(page.locator('.kmap .loop.dim')).not.toHaveCount(0);
+  await expect(page.locator('.kmap .loop.active')).not.toHaveCount(0);
+  await page.mouse.move(0, 0);
+  await expect(page.locator('.kmap .loop.dim')).toHaveCount(0);
+  await cell(page, 15).hover();
+  await expect(page.locator('.answer .term.linked.active')).toHaveCount(1);
 });
 
 test('the circuit switches style and downloads as SVG', async ({ page }) => {
@@ -113,12 +208,6 @@ test('the circuit switches style and downloads as SVG', async ({ page }) => {
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download SVG' }).click();
   expect((await download).suggestedFilename()).toBe('circuit-nand-nand.svg');
-});
-
-test('the theme toggle switches to dark', async ({ page }) => {
-  await page.getByRole('button', { name: /Theme/ }).click(); // auto -> light
-  await page.getByRole('button', { name: /Theme/ }).click(); // light -> dark
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 });
 
 for (const n of [4, 5, 6]) {
@@ -131,21 +220,3 @@ for (const n of [4, 5, 6]) {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 }
-
-test('hovering a term highlights its group on the map, and the reverse', async ({ page }) => {
-  await page.locator('.answer .term.linked').nth(1).hover();
-  await expect(page.locator('.kmap .loop.dim')).not.toHaveCount(0);
-  await expect(page.locator('.kmap .loop.active')).not.toHaveCount(0);
-  await page.mouse.move(0, 0);
-  await expect(page.locator('.kmap .loop.dim')).toHaveCount(0);
-  await cell(page, 15).hover();
-  await expect(page.locator('.answer .term.linked.active')).toHaveCount(1);
-});
-
-test('remembers the last function between visits', async ({ page }) => {
-  await page.getByRole('button', { name: 'Clear' }).click();
-  await cell(page, 6).click();
-  await page.goto('./'); // no hash: comes from saved state
-  await expect(page.locator('.kmap .cell.v1')).toHaveCount(1);
-  await expect(cell(page, 6)).toHaveClass(/\bv1\b/);
-});

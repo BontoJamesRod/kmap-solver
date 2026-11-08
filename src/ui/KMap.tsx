@@ -25,11 +25,13 @@ interface Props {
   wrongCells: Set<number>;
   onCycle: (m: number) => void;
   onSet: (m: number, value: CellValue) => void;
+  showNumbers: boolean;
+  animate: boolean;
 }
 
 const OPEN = 0.65; // how far an open-edged loop runs past the map edge (cell units)
 
-export function KMap({ fn, names, layout, groups, groupsKey, active, onActivate, wrongCells, onCycle, onSet }: Props) {
+export function KMap({ fn, names, layout, groups, groupsKey, active, onActivate, wrongCells, onCycle, onSet, showNumbers, animate }: Props) {
   const rows = layout.rowCodes.length;
   const cols = layout.colCodes.length;
   const [focused, setFocused] = useState(0);
@@ -74,7 +76,7 @@ export function KMap({ fn, names, layout, groups, groupsKey, active, onActivate,
 
   return (
     <div
-      className={`kmap n${fn.n}`}
+      className={`kmap n${fn.n}${showNumbers ? '' : ' no-numbers'}${animate ? '' : ' no-anim'}`}
       style={{ '--rows': rows, '--cols': cols, '--layer-cols': layout.layerGridCols } as CSSProperties}
       role="group"
       aria-label="Karnaugh map. Use the arrow keys to move between cells. Press 0, 1, or X to set a cell, or Space to cycle it."

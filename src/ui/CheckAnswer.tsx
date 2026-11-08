@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useState } from 'react';
 import { checkAnswer, type BoolFunction, type Form, type SolveResult } from '../engine';
-import { ErrorText } from './inputs/ExpressionInput';
+import { ErrorText } from './ErrorText';
 
 interface Props {
   fn: BoolFunction;
@@ -22,8 +22,8 @@ export function CheckAnswer({ fn, names, results, onWrongCells }: Props) {
   }, [check, onWrongCells]);
 
   return (
-    <section className="check" aria-labelledby={`${id}-h`}>
-      <h2 id={`${id}-h`}>Check your answer</h2>
+    <section className="card check" aria-labelledby={`${id}-h`}>
+      <h2 id={`${id}-h`} className="card-title">Check your answer</h2>
       <label className="field">
         <span className="sr-only">Your answer</span>
         <input

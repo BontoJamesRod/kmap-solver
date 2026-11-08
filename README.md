@@ -8,7 +8,7 @@ A Karnaugh map solver for 2 to 6 variables. It finds **every** minimal answer, d
 
 **Live site: https://bontojamesrod.github.io/kmap-solver/**
 
-![The solver showing F = A'B' + CD with both groups drawn on a 4-variable K-map](docs/screenshots/solver-light.png)
+![The solver: sidebar with examples and recents, a composer for typing a function, and a K-map with both groups drawn](docs/screenshots/solver-light.png)
 
 ## Why another K-map solver?
 
@@ -21,19 +21,21 @@ Most online solvers show one answer and no reasoning, stop at 4 variables, and y
 ## Features
 
 - **2–6 variables.** 5 and 6 variables are drawn as overlaid 4×4 maps, and groups that span maps are shown on every map they touch.
-- **Four ways to enter a function**, all kept in sync: click the map, edit the truth table, type a minterm list such as `Σm(1,3,7) + d(0,2)`, or type an expression such as `A'B + AC'D`.
+- **One box for any input.** Type an expression (`A'B + AC'D`) or a list (`Σm(1,3,7) + d(0,2)`, `ΠM(0,4)`) into the composer and press Enter. It detects which one you mean and adds variables if a list needs them. You can also click the map or edit the truth table.
 - **Minimal SOP and POS.** Product of sums groups the 0s, exactly as in class.
 - **Groups drawn like highlighter loops**, including wrap-around and corner groups, each with its own color-blind-safe color and a number.
 - **Matches your textbook.** Rename the variables (`w x y z`), and switch 3-variable maps between `A × BC` and `AB × C`.
 - **Check your answer.** It tells you whether your answer is equivalent, whether it's minimal, and which cells it gets wrong.
 - **Circuit diagram** as AND-OR or NAND-NAND (OR-AND or NOR-NOR for POS), downloadable as SVG.
 - **Copy the answer** as text, LaTeX, or a Verilog `assign` statement. Share the exact function with a link.
+- **Workspace like a chat app:** textbook examples and your *Recents* in a sidebar, with each function titled by its answer, plus a *Settings* dialog for variable names, map layout, theme, display, and default gate style.
 - **Accessible:** fully keyboard-operable and screen-reader labeled, with light and dark themes. Works on phones.
 - **No backend:** nothing you type leaves your browser.
 
 | | |
 | --- | --- |
 | ![Check your answer marking the wrong cells on the map](docs/screenshots/check-answer.png) | ![A 5-variable map in the dark theme](docs/screenshots/solver-dark-5var.png) |
+| ![The settings dialog, Appearance section](docs/screenshots/settings.png) | ![The solver on a phone](docs/screenshots/phone.png) |
 
 ## Step by step
 
@@ -41,7 +43,16 @@ Most online solvers show one answer and no reasoning, stop at 4 variables, and y
 
 ![AND-OR circuit for the answer](docs/screenshots/circuit.png)
 
-## Expression syntax
+## Input syntax
+
+The composer accepts lists as well as expressions:
+
+| Input | Example |
+| --- | --- |
+| Minterms with don't-cares | `Σm(1, 3, 7) + d(0, 2)`, `m(1 3 7) d(0 2)`, `1, 3, 5-7` |
+| Maxterms | `ΠM(0, 4) · d(2)`, `M(0, 4)` |
+
+Expressions use these operators:
 
 | Operation | You can type |
 | --- | --- |
@@ -64,7 +75,7 @@ Precedence from highest is NOT, AND, XOR, OR. A variable is one letter followed 
 | The tests can catch bugs | Deliberately broken versions of the engine were run to confirm these tests fail |
 | Speed | Every function, including hard symmetric 6-variable ones, solves in under 0.5 s |
 
-On top of that, 113 engine tests run in total, and 24 browser tests cover the main flows, phone widths, and an automated accessibility scan in both themes.
+In total there are 143 engine tests, and 31 browser tests cover the main flows, phone widths, and automated accessibility scans in both themes, including the settings dialog and the phone drawer.
 
 ## Run it locally
 
@@ -86,6 +97,7 @@ npm run dev
 ## How it's built
 
 - **TypeScript + React + Vite**, deployed to GitHub Pages by GitHub Actions on every push to `main`.
+- **Design** takes its feel from the Claude web app: warm neutrals, Source Serif 4 for headings, Inter for the interface (with its disambiguation set so 0/O and 1/l/I can't be confused), and a composer-style input. Name, logo, and fonts are its own.
 - **`src/engine/`** holds all the logic in pure TypeScript with no UI code: Quine-McCluskey, the exact cover search, Petrick's method, the expression parser, map geometry, and circuit layout. **`src/ui/`** only renders it. Lint rules enforce the split.
 - Docs written before the code:
   - [Research](docs/RESEARCH.md): existing tools, algorithms, textbook conventions, common student mistakes
