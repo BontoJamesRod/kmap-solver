@@ -38,7 +38,7 @@ export function Circuit({ cubes, n, names, form, defaultStyle }: Props) {
     const css = getComputedStyle(svg);
     clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     clone.setAttribute('color', css.color);
-    clone.setAttribute('font-family', 'B612, Inter, Arial, sans-serif');
+    clone.setAttribute('font-family', 'Schibsted Grotesk, Inter, Arial, sans-serif');
     const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     bg.setAttribute('width', '100%');
     bg.setAttribute('height', '100%');

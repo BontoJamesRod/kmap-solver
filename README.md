@@ -97,7 +97,7 @@ npm run dev
 ## How it's built
 
 - **TypeScript + React + Vite**, deployed to GitHub Pages by GitHub Actions on every push to `main`.
-- **Design** takes its feel from the Claude web app: warm neutrals and a composer-style input. Headings, answers, and the map are set in B612, the typeface Airbus commissioned for cockpit screens so that no character can be misread (no mixing up `0` and `O`, or `1` and `l`). Interface text is Inter. Name, logo, and fonts are its own.
+- **Design** takes its feel from the Claude web app: warm neutrals and a composer-style input. Headings, answers, and the map are set in Schibsted Grotesk, interface text in Inter, and bit patterns in B612 Mono. Name, logo, and fonts are its own.
 - **`src/engine/`** holds all the logic in pure TypeScript with no UI code: Quine-McCluskey, the exact cover search, Petrick's method, the expression parser, map geometry, and circuit layout. **`src/ui/`** only renders it. Lint rules enforce the split.
 - Docs written before the code:
   - [Research](docs/RESEARCH.md): existing tools, algorithms, textbook conventions, common student mistakes

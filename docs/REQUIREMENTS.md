@@ -45,7 +45,7 @@ A free web app that simplifies any Boolean function of 2–6 variables. It must:
 | --- | --- |
 | FR-26 | **Sidebar** with *New function*, textbook examples, and *Recents*. Every function worked on is saved in Recents, titled by its minimal answer, and can be reopened or removed. On narrow screens the sidebar is a drawer; on wide screens it can be collapsed. |
 | FR-27 | **Settings dialog** with sections: *General* (variable names, 3-variable layout, variable count and answer form for new functions), *Appearance* (light, dark, or system theme; group outline animation; cell numbers), *Circuit* (default gate style), *Data* (clear Recents, reset settings), and *About*. Settings are remembered between visits. |
-| FR-28 | **Visual design** follows the feel of the Claude web app: warm neutral colors, a composer-style input, rounded cards, and a tabbed settings dialog. Display type is B612, chosen for its unambiguous characters. It uses its own name, logo, and open-source fonts. |
+| FR-28 | **Visual design** follows the feel of the Claude web app: warm neutral colors, a composer-style input, rounded cards, and a tabbed settings dialog. Display type is Schibsted Grotesk. It uses its own name, logo, and open-source fonts. |
 
 ### Solving
 

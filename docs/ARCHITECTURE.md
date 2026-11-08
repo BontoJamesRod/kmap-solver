@@ -72,7 +72,7 @@ user input ──▶ state (useReducer) ──▶ engine.solve() (memoized) ─�
 
 ## Visual design
 
-Inspired by the Claude web app (FR-28): warm off-white and warm charcoal neutrals, and a terracotta accent used sparingly (send button, focus, selection). Display type is **B612**, the typeface Airbus commissioned for cockpit screens, where no character may be misread. It sets the headings, the answer, and the map values, so `0`/`O` and `1`/`l`/`I` can't be confused. **B612 Mono** sets bit patterns, and **Inter** sets interface text. Group colors stay on the color-blind-safe Okabe-Ito set. Design tokens are CSS custom properties at the top of `styles.css`.
+Inspired by the Claude web app (FR-28): warm off-white and warm charcoal neutrals, and a terracotta accent used sparingly (send button, focus, selection). Display type is **Schibsted Grotesk**, a sturdy grotesk originally made for the Schibsted newspaper group. It sets the headings, the answer, and the map values. **B612 Mono**, from the Airbus cockpit typeface family, sets bit patterns, and **Inter** sets interface text. Group colors stay on the color-blind-safe Okabe-Ito set. Design tokens are CSS custom properties at the top of `styles.css`.
 
 ## K-map rendering
 

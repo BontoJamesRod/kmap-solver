@@ -1,6 +1,5 @@
 import '@fontsource-variable/inter';
-import '@fontsource/b612/400.css';
-import '@fontsource/b612/700.css';
+import '@fontsource-variable/schibsted-grotesk';
 import '@fontsource/b612-mono/400.css';
 import './ui/styles.css';
 import { StrictMode } from 'react';

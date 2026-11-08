@@ -1,8 +1,8 @@
 /* ==================================================================
    Design tokens. The feel follows the Claude web app: warm neutrals and a
-   terracotta accent used sparingly. Display type is B612, the typeface Airbus
-   commissioned for cockpit screens, where no character may be misread; it sets
-   the headings, the answer, and the map values. Inter handles interface text.
+   terracotta accent used sparingly. Display type is Schibsted Grotesk, a sturdy
+   newspaper grotesk; it sets the headings, the answer, and the map values.
+   Inter handles interface text and B612 Mono the bit patterns.
    Group colors stay on the color-blind-safe Okabe-Ito set.
    ================================================================== */
 :root {
@@ -39,7 +39,7 @@
   --g7: #6f6f00;
   --g8: #3d4b5c;
 
-  --display: 'B612', 'Inter Variable', system-ui, sans-serif;
+  --display: 'Schibsted Grotesk Variable', 'Inter Variable', system-ui, sans-serif;
   --sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'B612 Mono', ui-monospace, 'Cascadia Mono', Menlo, monospace;
 
@@ -462,7 +462,7 @@ fieldset {
   gap: 9px;
   font-family: var(--display);
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 650;
   letter-spacing: -0.01em;
 }
 
@@ -661,9 +661,9 @@ fieldset {
 .greeting {
   margin: 20px 0 2px;
   font-family: var(--display);
-  font-size: 34px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 36px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
   line-height: 1.15;
   text-align: center;
 }
@@ -824,7 +824,7 @@ fieldset {
 .card-title {
   font-family: var(--display);
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 650;
   letter-spacing: -0.01em;
 }
 
@@ -1058,7 +1058,7 @@ fieldset {
 }
 
 .cell.v1 .val {
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .cell.v0 .val {
@@ -1244,9 +1244,9 @@ fieldset {
 }
 
 .answer {
-  font-size: 32px;
+  font-size: 34px;
   line-height: 1.5;
-  font-weight: 700;
+  font-weight: 650;
   letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
@@ -1814,7 +1814,7 @@ table.chart tr.essential th {
 .settings-head h2 {
   font-family: var(--display);
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 650;
   letter-spacing: -0.015em;
 }
 
