@@ -1,6 +1,7 @@
 import { forwardRef, useId, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { MAX_VARS, MIN_VARS, validateNames, type CircuitStyle, type Form, type ThreeVarLayout } from '../engine';
 import { IconX } from './icons';
+import { useIndicator, withViewTransition } from './motion';
 import type { Prefs, Theme } from './usePrefs';
 
 type Section = 'general' | 'appearance' | 'circuit' | 'data' | 'about';
@@ -109,6 +110,13 @@ export const Settings = forwardRef<HTMLDialogElement, Props>(function Settings(p
   const id = useId();
   const [section, setSection] = useState<Section>('general');
   const [confirmClear, setConfirmClear] = useState(false);
+  const navRef = useIndicator<HTMLDivElement>('[aria-selected="true"]', section);
+
+  const pickTheme = (t: Theme, el: HTMLElement | null) => {
+    if (t === prefs.theme) return;
+    const r = el?.getBoundingClientRect();
+    withViewTransition(() => onPrefs({ theme: t }), r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : undefined);
+  };
 
   const onTabKey = (e: KeyboardEvent) => {
     const i = SECTIONS.findIndex((s) => s.id === section);
@@ -141,7 +149,7 @@ export const Settings = forwardRef<HTMLDialogElement, Props>(function Settings(p
           </button>
         </header>
         <div className="settings-body">
-          <div role="tablist" aria-label="Settings sections" aria-orientation="vertical" className="settings-nav" onKeyDown={onTabKey}>
+          <div ref={navRef} role="tablist" aria-label="Settings sections" aria-orientation="vertical" className="settings-nav" onKeyDown={onTabKey}>
             {SECTIONS.map((s) => (
               <button
                 key={s.id}
@@ -159,6 +167,7 @@ export const Settings = forwardRef<HTMLDialogElement, Props>(function Settings(p
           </div>
 
           <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-tab-${section}`} className="settings-panel" tabIndex={0}>
+            <div key={section} className="panel-in">
             {section === 'general' && (
               <>
                 <h3>General</h3>
@@ -197,15 +206,20 @@ export const Settings = forwardRef<HTMLDialogElement, Props>(function Settings(p
                   <div className="theme-options">
                     {(['light', 'system', 'dark'] as const).map((t) => (
                       <label key={t} className="theme-option">
-                        <input type="radio" name={`${id}-theme`} checked={prefs.theme === t} onChange={() => onPrefs({ theme: t })} />
+                        <input
+                          type="radio"
+                          name={`${id}-theme`}
+                          checked={prefs.theme === t}
+                          onChange={(e) => pickTheme(t, e.currentTarget.parentElement?.querySelector('.theme-preview') ?? null)}
+                        />
                         <ThemePreview theme={t} />
                         <span>{t === 'system' ? 'Match system' : t === 'light' ? 'Light' : 'Dark'}</span>
                       </label>
                     ))}
                   </div>
                 </fieldset>
-                <Row title="Animate group outlines" description="Groups draw themselves in when the answer changes. Always off if your system asks for reduced motion.">
-                  <Switch checked={prefs.animate} onChange={(v) => onPrefs({ animate: v })} label="Animate group outlines" />
+                <Row title="Animations" description="Cells pop, groups draw in, counts roll, and panels slide. Always off if your system asks for reduced motion.">
+                  <Switch checked={prefs.animate} onChange={(v) => onPrefs({ animate: v })} label="Animations" />
                 </Row>
                 <Row title="Show cell numbers" description="The small minterm number in the corner of each cell.">
                   <Switch checked={prefs.cellNumbers} onChange={(v) => onPrefs({ cellNumbers: v })} label="Show cell numbers" />
@@ -272,6 +286,7 @@ export const Settings = forwardRef<HTMLDialogElement, Props>(function Settings(p
                 </div>
               </>
             )}
+            </div>
           </div>
         </div>
       </div>

@@ -29,6 +29,7 @@ Most online solvers show one answer and no reasoning, stop at 4 variables, and y
 - **Circuit diagram** as AND-OR or NAND-NAND (OR-AND or NOR-NOR for POS), downloadable as SVG.
 - **Copy the answer** as text, LaTeX, or a Verilog `assign` statement. Share the exact function with a link.
 - **Workspace like a chat app:** textbook examples and your *Recents* in a sidebar, with each function titled by its answer, plus a *Settings* dialog for variable names, map layout, theme, display, and default gate style.
+- **Motion with a purpose:** cells pop when they turn to 1, groups draw themselves in, counts roll, toggles slide, the answer staggers in term by term, the circuit wires itself, and the theme spreads out from where you clicked. One switch in Settings turns it all off, and it stays off if your system asks for reduced motion.
 - **Accessible:** fully keyboard-operable and screen-reader labeled, with light and dark themes. Works on phones.
 - **No backend:** nothing you type leaves your browser.
 

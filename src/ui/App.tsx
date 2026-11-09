@@ -22,7 +22,7 @@ import { Sidebar } from './Sidebar';
 import { Steps } from './Steps';
 import { TopBar } from './TopBar';
 import { useAppState } from './useAppState';
-import { useCopy } from './useCopy';
+import { useToast } from './Toast';
 import { usePrefs } from './usePrefs';
 import { newId, useRecents, type Recent } from './useRecents';
 
@@ -43,7 +43,7 @@ export function App() {
   const { state, dispatch, results, result, solution } = useAppState();
   const { prefs, setPrefs, resetPrefs } = usePrefs();
   const { recents, upsert, remove, clear } = useRecents();
-  const { copied, copy } = useCopy();
+  const toast = useToast();
   const drawer = useMediaQuery(NARROW);
 
   const [active, setActive] = useState<number | null>(null);
@@ -134,7 +134,10 @@ export function App() {
         onNew={onNew}
         onExample={onExample}
         onRecent={onRecent}
-        onRemoveRecent={(r) => remove(r.id)}
+        onRemoveRecent={(r) => {
+          remove(r.id);
+          toast('Removed from Recents');
+        }}
         onSettings={openSettings}
       />
 
@@ -146,8 +149,13 @@ export function App() {
             sidebarOpen={sidebarOpen}
             drawer={drawer}
             onToggleSidebar={toggleSidebar}
-            onShare={() => copy('link', window.location.href)}
-            shareLabel={copied === 'link' ? 'Link copied' : copied === 'link:failed' ? "Couldn't copy" : 'Share'}
+            onShare={() => {
+              navigator.clipboard.writeText(window.location.href).then(
+                () => toast('Link copied to clipboard'),
+                () => toast("Couldn't copy. The browser blocked the clipboard."),
+              );
+            }}
+            shareLabel="Share"
           />
         </div>
 
@@ -209,13 +217,19 @@ export function App() {
         ref={settingsRef}
         prefs={prefs}
         onPrefs={setPrefs}
-        onResetPrefs={resetPrefs}
+        onResetPrefs={() => {
+          resetPrefs();
+          toast('Settings reset');
+        }}
         names={names}
         onNames={(nm) => dispatch({ type: 'setNames', names: nm })}
         layout3={state.layout3}
         onLayout3={(l) => dispatch({ type: 'setLayout3', layout: l })}
         recentCount={recents.length}
-        onClearRecents={clear}
+        onClearRecents={() => {
+          clear();
+          toast('Recents cleared');
+        }}
         onClose={closeSettings}
       />
     </div>

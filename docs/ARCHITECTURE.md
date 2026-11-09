@@ -74,6 +74,23 @@ user input ──▶ state (useReducer) ──▶ engine.solve() (memoized) ─�
 
 Inspired by the Claude web app (FR-28): warm off-white and warm charcoal neutrals, and a terracotta accent used sparingly (send button, focus, selection). Display type is **Schibsted Grotesk**, a sturdy grotesk originally made for the Schibsted newspaper group. It sets the headings, the answer, and the map values. **B612 Mono**, from the Airbus cockpit typeface family, sets bit patterns, and **Inter** sets interface text. Group colors stay on the color-blind-safe Okabe-Ito set. Design tokens are CSS custom properties at the top of `styles.css`.
 
+## Motion (FR-29)
+
+Motion answers what the user just did, in the quick, springy style of X. Nothing moves on its own except the map's first ripple.
+
+| Piece | Where | How |
+| --- | --- | --- |
+| Tokens | `styles.css` | `--spring` (overshoot), `--ease`, durations of 120–450 ms |
+| Sliding indicator | `motion.ts` (`useIndicator`) | Measures the selected option and moves a pill behind it |
+| Rolling numbers | `RollingNumber.tsx` | Old value rolls out while the new one rolls in, in the direction of change |
+| Toasts | `Toast.tsx` | `role="status"` region; slides up, dismisses itself |
+| Cell pop and burst | `KMap.tsx` | Cells whose value changed get a pop; a cell that becomes 1 gets a ring and dots |
+| Dialog, drawer, sections | `styles.css` | CSS transitions with `@starting-style`, `allow-discrete`, and `::details-content` |
+| Theme reveal | `motion.ts` (`withViewTransition`) | View Transitions API, circular clip from the clicked card |
+| Shake, launch | `motion.ts` (`animate`) | Web Animations API |
+
+Everything checks `motionAllowed()`. `html[data-motion="off"]` (the Settings switch) and `prefers-reduced-motion` both cut durations to near zero in CSS.
+
 ## K-map rendering
 
 - Cells are a CSS grid of real `<button>` elements, so keyboard and screen readers work. The arrow keys move between cells; `0`, `1`, `x` and Space set a cell's value.

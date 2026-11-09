@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { motionAllowed } from './motion';
 import type { Example } from './examples';
 import { IconPlus, IconSettings, IconSidebar, IconX, Logo } from './icons';
 import type { Recent } from './useRecents';
@@ -19,6 +20,19 @@ interface Props {
 
 export function Sidebar({ open, drawer, activeId, recents, examples, onClose, onNew, onExample, onRecent, onRemoveRecent, onSettings }: Props) {
   const firstButton = useRef<HTMLButtonElement>(null);
+  const [removing, setRemoving] = useState<Set<string>>(() => new Set());
+  const removeWithExit = (r: Recent) => {
+    if (!motionAllowed()) return onRemoveRecent(r);
+    setRemoving((s) => new Set(s).add(r.id));
+    window.setTimeout(() => {
+      onRemoveRecent(r);
+      setRemoving((s) => {
+        const next = new Set(s);
+        next.delete(r.id);
+        return next;
+      });
+    }, 240);
+  };
 
   // Drawer behaviour on small screens: focus inside on open, Esc closes.
   useEffect(() => {
@@ -56,7 +70,9 @@ export function Sidebar({ open, drawer, activeId, recents, examples, onClose, on
         </div>
 
         <button ref={firstButton} type="button" className="new-function" onClick={pick(onNew)}>
-          <span className="new-icon"><IconPlus size={16} strokeWidth={2} /></span>
+          <span className="new-icon">
+            <IconPlus size={16} strokeWidth={2} />
+          </span>
           New function
         </button>
 
@@ -81,7 +97,7 @@ export function Sidebar({ open, drawer, activeId, recents, examples, onClose, on
             ) : (
               <ul className="side-list">
                 {recents.map((r) => (
-                  <li key={r.id} className={`recent${r.id === activeId ? ' current' : ''}`}>
+                  <li key={r.id} className={`recent${r.id === activeId ? ' current' : ''}${removing.has(r.id) ? ' removing' : ''}`}>
                     <button
                       type="button"
                       className="side-item"
@@ -91,7 +107,7 @@ export function Sidebar({ open, drawer, activeId, recents, examples, onClose, on
                       <span className="recent-title">{r.title}</span>
                       <span className="recent-sub">{r.subtitle}</span>
                     </button>
-                    <button type="button" className="recent-remove" aria-label={`Remove ${r.title} from recents`} onClick={() => onRemoveRecent(r)}>
+                    <button type="button" className="recent-remove" aria-label={`Remove ${r.title} from recents`} onClick={() => removeWithExit(r)}>
                       <IconX size={14} />
                     </button>
                   </li>

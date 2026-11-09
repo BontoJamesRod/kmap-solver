@@ -56,7 +56,7 @@ export function Expression({ cubes, n, names, form, active = null, onActivate, l
             </>
           );
         return (
-          <span key={`${c.value}-${c.dashes}`} className="term-wrap">
+          <span key={`${c.value}-${c.dashes}`} className="term-wrap" style={{ '--i': i } as CSSProperties}>
             {form === 'sop' && i > 0 && <span className="op"> + </span>}
             {linked ? (
               <span

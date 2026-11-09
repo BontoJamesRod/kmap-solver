@@ -39,7 +39,12 @@ export function CheckAnswer({ fn, names, results, onWrongCells }: Props) {
         />
       </label>
       {check.status === 'error' && <ErrorText text={text} error={check.error} />}
-      <div id={`${id}-verdict`} className={`verdict ${check.status === 'correct' ? (check.minimal === false ? 'meh' : 'good') : check.status}`} aria-live="polite">
+      <div
+        id={`${id}-verdict`}
+        className={`verdict ${check.status === 'correct' ? (check.minimal === false ? 'meh' : 'good') : check.status}`}
+        aria-live="polite"
+      >
+        <div key={check.status === 'correct' ? `correct-${check.minimal}` : check.status} className="verdict-in">
         {check.status === 'empty' && <p className="field-help">Write it as SOP or POS to find out whether it's also minimal.</p>}
         {check.status === 'error' && <p>{check.error.message}</p>}
         {check.status === 'wrong' && (
@@ -72,6 +77,7 @@ export function CheckAnswer({ fn, names, results, onWrongCells }: Props) {
             <p>It's equivalent to F. It isn't written as a plain sum of products or product of sums, so it can't be compared for minimality.</p>
           </>
         )}
+        </div>
       </div>
     </section>
   );

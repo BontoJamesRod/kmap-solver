@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useState, type CSSProperties } from 'react';
 import {
   canonicalForms,
   MAX_SOLUTIONS,
@@ -11,7 +11,9 @@ import {
   type SolveResult,
 } from '../engine';
 import { Expression } from './Expression';
-import { useCopy } from './useCopy';
+import { useIndicator } from './motion';
+import { RollingNumber } from './RollingNumber';
+import { useToast } from './Toast';
 
 interface Props {
   fn: BoolFunction;
@@ -25,8 +27,6 @@ interface Props {
   onSolution: (i: number) => void;
 }
 
-const plural = (k: number, word: string) => `${k} ${word}${k === 1 ? '' : 's'}`;
-
 function listWords(xs: number[]): string {
   if (xs.length <= 1) return xs.join('');
   return `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
@@ -34,7 +34,9 @@ function listWords(xs: number[]): string {
 
 export function ResultPanel({ fn, names, form, result, solution, active, onActivate, onForm, onSolution }: Props) {
   const id = useId();
-  const { copied, copy } = useCopy();
+  const toast = useToast();
+  const [dir, setDir] = useState<'next' | 'prev' | 'none'>('none');
+  const formRef = useIndicator<HTMLFieldSetElement>('input:checked + span', form);
   const cubes = solutionCubes(result, solution);
   const count = result.solutions.length;
   const used = usedDontCares(result, solution);
@@ -42,20 +44,41 @@ export function ResultPanel({ fn, names, form, result, solution, active, onActiv
   const canon = canonicalForms(fn);
   const groupedValue = form === 'sop' ? 1 : 0;
 
+  const answerText = solutionToString(cubes, fn.n, names, form);
   const copyItems = [
-    { key: 'text', label: 'Text', value: `F = ${solutionToString(cubes, fn.n, names, form)}` },
-    { key: 'latex', label: 'LaTeX', value: `F = ${solutionToString(cubes, fn.n, names, form, 'latex')}` },
-    { key: 'verilog', label: 'Verilog', value: toVerilog(cubes, fn.n, names, form) },
+    { key: 'text', label: 'Text', value: `F = ${answerText}`, done: 'Copied the answer' },
+    { key: 'latex', label: 'LaTeX', value: `F = ${solutionToString(cubes, fn.n, names, form, 'latex')}`, done: 'Copied as LaTeX' },
+    { key: 'verilog', label: 'Verilog', value: toVerilog(cubes, fn.n, names, form), done: 'Copied as Verilog' },
   ];
+  const copy = async (value: string, done: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast(done);
+    } catch {
+      toast("Couldn't copy. The browser blocked the clipboard.");
+    }
+  };
+  const step = (delta: 1 | -1) => {
+    setDir(delta === 1 ? 'next' : 'prev');
+    onSolution((solution + delta + count) % count);
+  };
 
   return (
     <section className="result" aria-labelledby={`${id}-h`}>
       <h2 id={`${id}-h`} className="sr-only">Minimal answer</h2>
-      <fieldset className="segmented">
+      <fieldset className="segmented" ref={formRef}>
         <legend className="sr-only">Answer form</legend>
         {(['sop', 'pos'] as const).map((f) => (
           <label key={f}>
-            <input type="radio" name={`${id}-form`} checked={form === f} onChange={() => onForm(f)} />
+            <input
+              type="radio"
+              name={`${id}-form`}
+              checked={form === f}
+              onChange={() => {
+                setDir('none');
+                onForm(f);
+              }}
+            />
             <span>
               {f === 'sop' ? 'Sum of products' : 'Product of sums'}
               <small>{f === 'sop' ? 'groups the 1s' : 'groups the 0s'}</small>
@@ -66,25 +89,32 @@ export function ResultPanel({ fn, names, form, result, solution, active, onActiv
 
       <p className={`answer${cubes.length > 12 ? ' very-long' : cubes.length > 5 ? ' long' : ''}`} aria-live="polite">
         <span className="answer-lhs">F =</span>{' '}
-        <Expression cubes={cubes} n={fn.n} names={names} form={form} linked active={active} onActivate={onActivate} />
+        <span key={`${form}:${answerText}`} className={`answer-anim from-${dir}`} style={{ '--terms': cubes.length } as CSSProperties}>
+          <Expression cubes={cubes} n={fn.n} names={names} form={form} linked active={active} onActivate={onActivate} />
+        </span>
       </p>
 
       <div className="answer-meta">
         <span>
-          {result.constant !== null
-            ? `F is always ${result.constant} on the cells that matter.`
-            : `${plural(result.cost.terms, 'term')}, ${plural(result.cost.literals, 'literal')}`}
+          {result.constant !== null ? (
+            `F is always ${result.constant} on the cells that matter.`
+          ) : (
+            <>
+              <RollingNumber value={result.cost.terms} /> {result.cost.terms === 1 ? 'term' : 'terms'},{' '}
+              <RollingNumber value={result.cost.literals} /> {result.cost.literals === 1 ? 'literal' : 'literals'}
+            </>
+          )}
         </span>
         {count > 1 && (
           <span className="picker">
-            <button type="button" className="button secondary small" onClick={() => onSolution((solution - 1 + count) % count)} aria-label="Previous answer">
+            <button type="button" className="button secondary small" onClick={() => step(-1)} aria-label="Previous answer">
               Previous
             </button>
             <span aria-live="polite">
-              Answer {solution + 1} of {count}
+              Answer <RollingNumber value={solution + 1} /> of <RollingNumber value={count} />
               {result.solutionsTruncated ? '+' : ''}
             </span>
-            <button type="button" className="button secondary small" onClick={() => onSolution((solution + 1) % count)} aria-label="Next answer">
+            <button type="button" className="button secondary small" onClick={() => step(1)} aria-label="Next answer">
               Next
             </button>
           </span>
@@ -114,8 +144,8 @@ export function ResultPanel({ fn, names, form, result, solution, active, onActiv
       <div className="copy-row">
         <span className="copy-label">Copy as</span>
         {copyItems.map((it) => (
-          <button key={it.key} type="button" className="chip-button" onClick={() => copy(it.key, it.value)}>
-            {copied === it.key ? 'Copied' : copied === `${it.key}:failed` ? "Couldn't copy" : it.label}
+          <button key={it.key} type="button" className="chip-button" onClick={() => copy(it.value, it.done)}>
+            {it.label}
           </button>
         ))}
       </div>

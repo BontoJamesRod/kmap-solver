@@ -50,6 +50,9 @@
   --label: 38px;
   --sidebar-w: 272px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-soft: cubic-bezier(0.25, 1.2, 0.5, 1);
+  interpolate-size: allow-keywords;
 
   color-scheme: light;
 }
@@ -419,20 +422,25 @@ fieldset {
   border-right: 1px solid var(--border);
 }
 
+.sidebar {
+  transition:
+    transform 0.34s var(--spring-soft),
+    display 0.34s allow-discrete;
+}
+
 .sidebar[hidden] {
   display: none;
+  transform: translateX(-104%);
+}
+
+@starting-style {
+  .sidebar:not([hidden]) {
+    transform: translateX(-104%);
+  }
 }
 
 .sidebar.drawer {
   box-shadow: var(--shadow-lg);
-  animation: slide-in 0.2s var(--ease);
-}
-
-@keyframes slide-in {
-  from {
-    transform: translateX(-24px);
-    opacity: 0;
-  }
 }
 
 .scrim {
@@ -899,7 +907,7 @@ fieldset {
 .block .chev {
   margin-left: auto;
   color: var(--text-2);
-  transition: transform 0.2s var(--ease);
+  transition: transform 0.36s var(--spring);
 }
 
 .block[open] .chev {
@@ -1782,19 +1790,44 @@ table.chart tr.essential th {
   overflow: hidden;
 }
 
+/* Open and close both animate: @starting-style for the way in, allow-discrete for the way out. */
+.settings {
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+  transition:
+    opacity 0.2s var(--ease),
+    transform 0.34s var(--spring),
+    overlay 0.34s allow-discrete,
+    display 0.34s allow-discrete;
+}
+
 .settings[open] {
-  animation: dialog-in 0.18s var(--ease);
+  opacity: 1;
+  transform: none;
+}
+
+@starting-style {
+  .settings[open] {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
 }
 
 .settings::backdrop {
-  background: var(--scrim);
-  animation: fade-in 0.18s var(--ease);
+  background: transparent;
+  transition:
+    background-color 0.25s var(--ease),
+    overlay 0.25s allow-discrete,
+    display 0.25s allow-discrete;
 }
 
-@keyframes dialog-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.985);
+.settings[open]::backdrop {
+  background: var(--scrim);
+}
+
+@starting-style {
+  .settings[open]::backdrop {
+    background: transparent;
   }
 }
 
@@ -1958,7 +1991,15 @@ table.chart tr.essential th {
   border-radius: 50%;
   background: var(--surface);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: transform 0.18s var(--ease);
+  transition: transform 0.32s var(--spring), width 0.2s var(--ease);
+}
+
+.switch:active .switch-knob {
+  width: 22px;
+}
+
+.switch[aria-checked='true']:active .switch-knob {
+  transform: translateX(12px);
 }
 
 .switch[aria-checked='true'] .switch-knob {
@@ -2162,18 +2203,497 @@ table.chart tr.essential th {
   text-align: center;
 }
 
-/* ================================================================== motion */
+/* ================================================================== motion (FR-29)
+   Quick, springy feedback in the style of X. Everything below answers a user action,
+   except the map's first ripple. */
+
+/* Buttons press in and spring back. */
+.button,
+.icon-button,
+.new-function,
+.side-item,
+.send,
+.chip-button,
+.recent-remove,
+.cell,
+.settings-nav [role='tab'],
+.pill-select select {
+  transition-property: background-color, border-color, color, box-shadow, opacity, transform;
+  transition-duration: 0.15s, 0.15s, 0.15s, 0.15s, 0.15s, 0.24s;
+  transition-timing-function: var(--ease), var(--ease), var(--ease), var(--ease), var(--ease), var(--spring);
+}
+
+.button:not(:disabled):active,
+.icon-button:active,
+.chip-button:active,
+.new-function:active,
+.side-item:active,
+.recent-remove:active,
+.pill-select select:active {
+  transform: scale(0.95);
+}
+
+.send:not(:disabled):active {
+  transform: scale(0.88);
+}
+
+.cell:active {
+  transform: scale(0.93);
+}
+
+/* Scale the whole option (input and text together) so the text never covers the input. */
+.segmented label {
+  transition: transform 0.24s var(--spring);
+}
+
+.segmented label:active {
+  transform: scale(0.95);
+}
+
+.new-icon svg {
+  transition: transform 0.4s var(--spring);
+}
+
+.new-function:hover .new-icon svg {
+  transform: rotate(90deg);
+}
+
+/* Sliding pill behind the selected option (segmented controls, settings sections). */
+.segmented,
+.settings-nav {
+  position: relative;
+  isolation: isolate;
+}
+
+.segmented label,
+.settings-nav [role='tab'] {
+  position: relative;
+  z-index: 1;
+}
+
+.segmented[data-indicator]::before,
+.settings-nav[data-indicator]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  width: var(--ind-w);
+  height: var(--ind-h);
+  transform: translate(var(--ind-x), var(--ind-y));
+  border-radius: 8px;
+}
+
+.segmented[data-indicator]::before {
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(31, 30, 29, 0.12), 0 0 0 0.5px var(--border-strong);
+}
+
+.settings-nav[data-indicator]::before {
+  background: var(--selected);
+}
+
+.segmented[data-indicator-ready]::before,
+.settings-nav[data-indicator-ready]::before {
+  transition:
+    transform 0.42s var(--spring),
+    width 0.42s var(--spring),
+    height 0.42s var(--spring);
+}
+
+.segmented[data-indicator] input:checked + span {
+  background: transparent;
+  box-shadow: none;
+}
+
+.settings-nav[data-indicator] [role='tab'][aria-selected='true'] {
+  background: transparent;
+}
+
+/* Rolling numbers. */
+.roll {
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.roll > span {
+  grid-area: 1 / 1;
+}
+
+.roll-in.up {
+  animation: roll-in-up 0.42s var(--spring) both;
+}
+
+.roll-in.down {
+  animation: roll-in-down 0.42s var(--spring) both;
+}
+
+.roll-out.up {
+  animation: roll-out-up 0.3s var(--ease) both;
+}
+
+.roll-out.down {
+  animation: roll-out-down 0.3s var(--ease) both;
+}
+
+@keyframes roll-in-up {
+  from {
+    transform: translateY(80%);
+    opacity: 0;
+  }
+}
+
+@keyframes roll-in-down {
+  from {
+    transform: translateY(-80%);
+    opacity: 0;
+  }
+}
+
+@keyframes roll-out-up {
+  to {
+    transform: translateY(-80%);
+    opacity: 0;
+  }
+}
+
+@keyframes roll-out-down {
+  to {
+    transform: translateY(80%);
+    opacity: 0;
+  }
+}
+
+/* Answer terms arrive one after another. */
+.answer-anim .term-wrap {
+  display: inline-block;
+  animation: term-in 0.46s var(--spring) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+.answer-anim.from-next .term-wrap {
+  animation-name: term-in-left;
+}
+
+.answer-anim.from-prev .term-wrap {
+  animation-name: term-in-right;
+}
+
+@keyframes term-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+  }
+}
+
+@keyframes term-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+}
+
+@keyframes term-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(-22px);
+  }
+}
+
+/* Panels that swap content. */
+.verdict-in,
+.panel-in,
+.view-in {
+  animation: fade-up 0.3s var(--ease) both;
+}
+
+.composer-hint {
+  animation: fade-in 0.25s var(--ease) both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* K-map cells: pop when changed (and ripple in on first show), burst when they become 1. */
+.val.pop {
+  display: inline-block;
+  animation: pop 0.44s var(--spring) both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: 64%;
+  height: 64%;
+  translate: -50% -50%;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: burst-ring 0.5s var(--ease) both;
+}
+
+.burst::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px;
+  border-radius: 50%;
+  box-shadow:
+    0 -22px 0 var(--g1),
+    19px -11px 0 var(--accent),
+    19px 11px 0 var(--g3),
+    0 22px 0 var(--g4),
+    -19px 11px 0 var(--g5),
+    -19px -11px 0 var(--g6);
+  animation: burst-dots 0.6s var(--ease) both;
+}
+
+@keyframes burst-ring {
+  from {
+    transform: scale(0.2);
+    opacity: 1;
+    border-width: 7px;
+  }
+  to {
+    transform: scale(1.3);
+    opacity: 0;
+    border-width: 0;
+  }
+}
+
+@keyframes burst-dots {
+  from {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+.cell.wrong {
+  animation: shake 0.4s ease-out;
+}
+
+.cell.wrong::after {
+  animation: pop 0.44s var(--spring) both;
+}
+
+@keyframes shake {
+  20% {
+    transform: translateX(-3px);
+  }
+  45% {
+    transform: translateX(3px);
+  }
+  70% {
+    transform: translateX(-2px);
+  }
+}
+
+.badge {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: badge-in 0.4s var(--spring) both;
+  animation-delay: var(--bd, 0ms);
+}
+
+@keyframes badge-in {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* Circuit: wires draw in, gates spring in, labels follow. */
+.circuit-svg .wire {
+  stroke-dasharray: 1.02;
+  stroke-dashoffset: 1.02;
+  animation: wire-draw 0.55s var(--ease) forwards;
+  animation-delay: calc(var(--i, 0) * 16ms);
+}
+
+@keyframes wire-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.circuit-svg .gate {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: gate-in 0.42s var(--spring) both;
+  animation-delay: calc(140ms + var(--i, 0) * 35ms);
+}
+
+@keyframes gate-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.circuit-svg text,
+.circuit-svg circle:not(.gate-body) {
+  animation: fade-in 0.4s var(--ease) 0.35s both;
+}
+
+/* Collapsible sections open and close smoothly. */
+details::details-content {
+  block-size: 0;
+  overflow-y: clip;
+  transition:
+    block-size 0.38s var(--ease),
+    content-visibility 0.38s allow-discrete;
+}
+
+details[open]::details-content {
+  block-size: auto;
+}
+
+/* Recents slide in, and out when removed. */
+.recent {
+  animation: item-in 0.38s var(--spring) both;
+}
+
+.recent.removing {
+  overflow: hidden;
+  animation: item-out 0.24s var(--ease) forwards;
+}
+
+@keyframes item-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}
+
+@keyframes item-out {
+  from {
+    height: auto;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
+/* Toasts. */
+.toasts {
+  position: fixed;
+  inset: auto auto 24px 50%;
+  translate: -50% 0;
+  z-index: 100;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.toasts:popover-open {
+  display: grid;
+}
+
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 10px 13px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+  animation: toast-in 0.46s var(--spring) both;
+}
+
+.toast svg {
+  color: var(--accent);
+}
+
+.toast.leaving {
+  animation: toast-out 0.3s var(--ease) both;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.92);
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+}
+
+/* Theme change: the new theme grows out of the clicked card (see motion.ts). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Motion off: the Settings switch, or the system's reduced-motion request. */
+:root[data-motion='off'] *,
+:root[data-motion='off'] *::before,
+:root[data-motion='off'] *::after,
+:root[data-motion='off'] *::backdrop {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
-  *::after {
+  *::after,
+  *::backdrop {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-  .loop {
-    animation: none;
-    stroke-dashoffset: 0;
-    fill-opacity: 1;
+    transition-delay: 0ms !important;
   }
 }

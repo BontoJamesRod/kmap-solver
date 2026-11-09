@@ -1,6 +1,8 @@
-import { useId, useMemo, useRef, useState } from 'react';
+import { useId, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { buildCircuit, type CircuitStyle, type Cube, type Form, type Gate } from '../engine';
 import { IconDownload } from './icons';
+import { useIndicator } from './motion';
+import { useToast } from './Toast';
 
 interface Props {
   cubes: Cube[];
@@ -26,6 +28,8 @@ export function Circuit({ cubes, n, names, form, defaultStyle }: Props) {
   const id = useId();
   const [style, setStyle] = useState<CircuitStyle>(defaultStyle);
   const svgRef = useRef<SVGSVGElement>(null);
+  const toast = useToast();
+  const styleRef = useIndicator<HTMLFieldSetElement>('input:checked + span', style);
   const model = useMemo(() => buildCircuit(cubes, n, names, form, style), [cubes, n, names, form, style]);
   const styleNames: Record<CircuitStyle, string> = form === 'sop'
     ? { 'two-level': 'AND-OR', universal: 'NAND-NAND' }
@@ -51,6 +55,7 @@ export function Circuit({ cubes, n, names, form, defaultStyle }: Props) {
     a.download = `circuit-${styleNames[style].toLowerCase()}.svg`;
     a.click();
     URL.revokeObjectURL(url);
+    toast('Circuit downloaded as SVG');
   };
 
   const describe = model.constant !== null
@@ -60,7 +65,7 @@ export function Circuit({ cubes, n, names, form, defaultStyle }: Props) {
   return (
     <div className="circuit">
       <div className="circuit-controls">
-        <fieldset className="segmented small">
+        <fieldset className="segmented small" ref={styleRef}>
           <legend className="sr-only">Gate style</legend>
           {(['two-level', 'universal'] as const).map((s) => (
             <label key={s}>
@@ -78,6 +83,7 @@ export function Circuit({ cubes, n, names, form, defaultStyle }: Props) {
       {model.constant === null && (
         <div className="circuit-scroll">
           <svg
+            key={`${style}:${model.width}x${model.height}:${model.wires.length}:${model.gates.length}`}
             ref={svgRef}
             className="circuit-svg"
             viewBox={`0 0 ${model.width} ${model.height}`}
@@ -88,10 +94,16 @@ export function Circuit({ cubes, n, names, form, defaultStyle }: Props) {
           >
             <g fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
               {model.wires.map((w, i) => (
-                <polyline key={i} points={w.map((p) => `${p.x},${p.y}`).join(' ')} />
+                <polyline
+                  key={i}
+                  className="wire"
+                  pathLength={1}
+                  style={{ '--i': i } as CSSProperties}
+                  points={w.map((p) => `${p.x},${p.y}`).join(' ')}
+                />
               ))}
               {model.gates.map((g, i) => (
-                <g key={i}>
+                <g key={i} className="gate" style={{ '--i': i } as CSSProperties}>
                   {/* Extended input line above and below the body, never through its curved back. */}
                   {g.extend && g.extend.top < g.y && <line x1={g.x} y1={g.extend.top} x2={g.x} y2={g.y} />}
                   {g.extend && g.extend.bottom > g.y + g.h && (

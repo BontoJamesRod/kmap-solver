@@ -31,7 +31,7 @@ export function TopBar({ title, subtitle, sidebarOpen, drawer, onToggleSidebar, 
       </div>
       <button type="button" className="button secondary" onClick={onShare}>
         <IconLink size={16} />
-        <span aria-live="polite">{shareLabel}</span>
+        <span>{shareLabel}</span>
       </button>
     </header>
   );

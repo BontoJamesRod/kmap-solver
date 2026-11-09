@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import {
   axisLabel,
   cellMinterm,
@@ -38,6 +38,23 @@ export function KMap({ fn, names, layout, groups, groupsKey, active, onActivate,
   const cellRefs = useRef(new Map<number, HTMLButtonElement>());
 
   const rectsByGroup = useMemo(() => groups.map((g) => cubeRects(layout, g)), [groups, layout]);
+
+  // Motion: a diagonal ripple when the map first appears or changes shape, and a pop
+  // (plus a burst when a cell becomes 1) for cells the user just changed.
+  const shape = `${fn.n}-${layout.rowCodes.length}x${layout.colCodes.length}`;
+  const [intro, setIntro] = useState({ shape, active: true });
+  const [seen, setSeen] = useState({ shape, values: fn.values, prev: fn.values, tick: 0 });
+  if (intro.shape !== shape) setIntro({ shape, active: true });
+  if (seen.values !== fn.values || seen.shape !== shape) {
+    setSeen({ shape, values: fn.values, prev: seen.shape === shape ? seen.values : fn.values, tick: seen.tick + 1 });
+  }
+  useEffect(() => {
+    const t = window.setTimeout(() => setIntro((s) => (s.shape === shape ? { ...s, active: false } : s)), 900);
+    return () => window.clearTimeout(t);
+  }, [shape]);
+  const inIntro = intro.active;
+  const prev = seen.shape === shape ? seen.prev : fn.values;
+  const changedCount = fn.values.reduce<number>((k, v, m) => k + (v !== prev[m] ? 1 : 0), 0);
   const rowNames = layout.rowVars.map((v) => names[v]).join('');
   const colNames = layout.colVars.map((v) => names[v]).join('');
   const layered = layout.layers.length > 1;
@@ -111,6 +128,10 @@ export function KMap({ fn, names, layout, groups, groupsKey, active, onActivate,
                     const m = cellMinterm(layout, li, r, c);
                     const v = fn.values[m]!;
                     const wrong = wrongCells.has(m);
+                    const changed = !inIntro && v !== prev[m];
+                    // Bulk changes (an example, a pasted list) pop without bursts to stay calm.
+                    const burst = changed && v === 1 && changedCount <= 3;
+                    const wave = (layer.gridRow * rows + r + layer.gridCol * cols + c) * 26;
                     return (
                       <button
                         key={m}
@@ -136,7 +157,14 @@ export function KMap({ fn, names, layout, groups, groupsKey, active, onActivate,
                         onMouseLeave={() => onActivate(null)}
                       >
                         <span className="m-no">{m}</span>{' '}
-                        <span className="val">{v === 'x' ? 'X' : v}</span>
+                        <span
+                          key={`${v}-${changed ? seen.tick : 'same'}-${intro.shape}`}
+                          className={`val${inIntro || changed ? ' pop' : ''}`}
+                          style={inIntro ? ({ '--d': `${wave}ms` } as CSSProperties) : undefined}
+                        >
+                          {v === 'x' ? 'X' : v}
+                        </span>
+                        {burst && <span key={`b${seen.tick}`} className="burst" aria-hidden="true" />}
                         <span className="sr-only">
                           {v === 'x' ? " (don't-care)" : ''}, minterm {mintermProduct(m, fn.n, names)}
                           {wrong ? ', your answer is wrong here' : ''}
@@ -178,7 +206,7 @@ export function KMap({ fn, names, layout, groups, groupsKey, active, onActivate,
                               height={h}
                               rx={0.32}
                               pathLength={1}
-                              style={{ '--group': groupColor(gi), animationDelay: `${Math.min(gi, 6) * 60}ms` } as CSSProperties}
+                              style={{ '--group': groupColor(gi), animationDelay: `${Math.min(gi, 6) * 60 + (inIntro ? 260 : 0)}ms` } as CSSProperties}
                             />
                           );
                         });
@@ -192,7 +220,11 @@ export function KMap({ fn, names, layout, groups, groupsKey, active, onActivate,
                     const cy = first.row + first.rowSpan - inset - 0.17;
                     const dim = active !== null && active !== gi;
                     return (
-                      <g key={`b${gi}`} className={`badge${dim ? ' dim' : ''}`} style={{ '--group': groupColor(gi) } as CSSProperties}>
+                      <g
+                        key={`b${gi}`}
+                        className={`badge${dim ? ' dim' : ''}`}
+                        style={{ '--group': groupColor(gi), '--bd': `${Math.min(gi, 6) * 60 + 380 + (inIntro ? 260 : 0)}ms` } as CSSProperties}
+                      >
                         <circle cx={cx} cy={cy} r={0.14} />
                         <text x={cx} y={cy}>{gi + 1}</text>
                       </g>

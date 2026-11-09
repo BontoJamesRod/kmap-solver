@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import type { CircuitStyle, Form } from '../engine';
 
 export type Theme = 'system' | 'light' | 'dark';
@@ -45,14 +45,20 @@ function load(): Prefs {
 export function usePrefs() {
   const [prefs, setPrefsState] = useState<Prefs>(load);
 
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    if (prefs.theme === 'system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', prefs.theme);
+    if (prefs.animate) root.removeAttribute('data-motion');
+    else root.setAttribute('data-motion', 'off');
+  }, [prefs.theme, prefs.animate]);
+
   useEffect(() => {
     try {
       localStorage.setItem(KEY, JSON.stringify(prefs));
     } catch {
       // Preferences just won't persist.
     }
-    if (prefs.theme === 'system') document.documentElement.removeAttribute('data-theme');
-    else document.documentElement.setAttribute('data-theme', prefs.theme);
   }, [prefs]);
 
   const setPrefs = useCallback((patch: Partial<Prefs>) => setPrefsState((p) => ({ ...p, ...patch })), []);

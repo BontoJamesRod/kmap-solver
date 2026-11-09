@@ -128,7 +128,9 @@ test('settings: names, 3-variable layout, cell numbers, and theme', async ({ pag
   await page.getByRole('combobox', { name: '3-variable map layout' }).selectOption('tall');
   await page.getByRole('tab', { name: 'Appearance' }).click();
   await page.getByRole('switch', { name: 'Show cell numbers' }).click();
-  await page.getByRole('radio', { name: 'Dark' }).check();
+  // The theme changes through a view transition (a frame later), so click and wait.
+  await page.getByRole('radio', { name: 'Dark' }).click();
+  await expect(page.getByRole('radio', { name: 'Dark' })).toBeChecked();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Settings' })).toBeHidden();

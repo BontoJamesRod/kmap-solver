@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| **Version** | 1.1 |
+| **Version** | 1.2 |
 | **Status** | Implemented |
 | **Owner** | James Rod Bonto ([@BontoJamesRod](https://github.com/BontoJamesRod)) |
 | **Background** | [RESEARCH.md](RESEARCH.md) |
@@ -46,6 +46,8 @@ A free web app that simplifies any Boolean function of 2–6 variables. It must:
 | FR-26 | **Sidebar** with *New function*, textbook examples, and *Recents*. Every function worked on is saved in Recents, titled by its minimal answer, and can be reopened or removed. On narrow screens the sidebar is a drawer; on wide screens it can be collapsed. |
 | FR-27 | **Settings dialog** with sections: *General* (variable names, 3-variable layout, variable count and answer form for new functions), *Appearance* (light, dark, or system theme; group outline animation; cell numbers), *Circuit* (default gate style), *Data* (clear Recents, reset settings), and *About*. Settings are remembered between visits. |
 | FR-28 | **Visual design** follows the feel of the Claude web app: warm neutral colors, a composer-style input, rounded cards, and a tabbed settings dialog. Display type is Schibsted Grotesk. It uses its own name, logo, and open-source fonts. |
+
+| FR-29 | **Motion** in the style of X: quick, springy feedback for every action. Cells pop when changed, with a burst when they become 1; the map ripples in when it loads or resizes; counts roll; toggles have a sliding indicator; answers stagger in; circuit wires draw in; dialogs, the drawer, collapsible sections, and Recents items animate in and out; copies and shares confirm with a toast; invalid input shakes; buttons press; changing theme reveals the new one in a circle. Motion can be turned off in Settings and is always off when the system asks for reduced motion. |
 
 ### Solving
 
@@ -124,6 +126,7 @@ A free web app that simplifies any Boolean function of 2–6 variables. It must:
 | FR-2, FR-3 | `src/engine/__tests__/lists.test.ts`, `e2e/app.spec.ts` |
 | FR-25 | `src/engine/__tests__/input.test.ts`, `e2e/app.spec.ts` |
 | FR-26, FR-27 | `e2e/app.spec.ts`, `e2e/a11y.spec.ts` (including the open settings dialog and drawer) |
+| FR-29 | `e2e/motion.spec.ts` (animations run, the setting and reduced motion turn them off, toasts are announced) |
 | FR-28 | Screenshots in `docs/screenshots/`, reviewed in light and dark themes and at 360 px |
 | FR-4 | `src/engine/__tests__/parse.test.ts` (including a random round-trip test) |
 | FR-6, FR-7, FR-8 | `src/engine/__tests__/solve.test.ts`, `src/engine/__tests__/exhaustive.test.ts` |

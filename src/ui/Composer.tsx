@@ -10,6 +10,7 @@ import {
 } from '../engine';
 import { ErrorText } from './ErrorText';
 import { IconArrowUp } from './icons';
+import { animate, SHAKE } from './motion';
 
 interface Props {
   fn: BoolFunction;
@@ -28,14 +29,23 @@ export function Composer({ fn, names, text, onText, onApply, onN }: Props) {
   const [error, setError] = useState<ParseError | null>(null);
   const [applied, setApplied] = useState<string | null>(null);
   const area = useRef<HTMLTextAreaElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const sendRef = useRef<HTMLButtonElement>(null);
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
     const r = parseFunctionInput(text, mode, fn.n, names);
     if (!r.ok) {
       setError(r.error);
+      animate(formRef.current, SHAKE, { duration: 380, easing: 'ease-out' });
       return;
     }
+    animate(sendRef.current?.querySelector('svg'), [
+      { transform: 'translateY(0)', opacity: 1 },
+      { transform: 'translateY(-14px)', opacity: 0, offset: 0.45 },
+      { transform: 'translateY(12px)', opacity: 0, offset: 0.46 },
+      { transform: 'translateY(0)', opacity: 1 },
+    ], { duration: 420, easing: 'cubic-bezier(0.3, 0.7, 0.3, 1)' });
     setError(null);
     setApplied(r.fn.values.join(''));
     onApply(r.fn, r.names, text);
@@ -53,7 +63,7 @@ export function Composer({ fn, names, text, onText, onApply, onN }: Props) {
 
   return (
     <div className="composer-wrap">
-      <form className={`composer${error ? ' has-error' : ''}`} onSubmit={submit} onClick={() => area.current?.focus()}>
+      <form ref={formRef} className={`composer${error ? ' has-error' : ''}`} onSubmit={submit} onClick={() => area.current?.focus()}>
         <label htmlFor={`${id}-input`} className="sr-only">
           Function
         </label>
@@ -94,8 +104,12 @@ export function Composer({ fn, names, text, onText, onApply, onN }: Props) {
               <option value="maxterms">Maxterms, ΠM</option>
             </select>
           </label>
-          {mode === 'auto' && autoKind && <span className="composer-hint">Reads as {KIND_LABEL[autoKind]}</span>}
-          <button type="submit" className="send" disabled={text.trim() === ''} aria-label="Apply function">
+          {mode === 'auto' && autoKind && (
+            <span key={autoKind} className="composer-hint">
+              Reads as {KIND_LABEL[autoKind]}
+            </span>
+          )}
+          <button ref={sendRef} type="submit" className="send" disabled={text.trim() === ''} aria-label="Apply function">
             <IconArrowUp size={18} strokeWidth={2.2} />
           </button>
         </div>
